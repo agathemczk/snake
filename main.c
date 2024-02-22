@@ -18,8 +18,8 @@ int snakeY = -50;
 // Couleur initiale du serpent
 SDL_Color snakeColor = {56, 159, 109, 255};
 
-int framesPerMove = 5; // Le serpent bouge toutes les 5 frames
-int frameCount = 0; // Compteur de frames
+// Pour la pomme inversée
+bool isInverse = false;
 
 typedef enum Direction {
     UP,
@@ -57,6 +57,10 @@ typedef struct OrangeApple {
 typedef struct PinkLady {
     int x, y;
 } PinkLady;
+
+typedef struct InverseApple {
+    int x, y;
+} InverseApple;
 
 // Initialisation du serpent
 SnakeSegment* initSnake(int x, int y) {
@@ -141,6 +145,14 @@ PinkLady generatePinkLady() {
     return pinkLady;
 }
 
+// C'est le monde à l'envers
+InverseApple generateInverseApple() {
+    InverseApple inverseApple;
+    inverseApple.x = (rand() % ((WINDOW_WIDTH - APPLE_SIZE) / APPLE_SIZE)) * APPLE_SIZE;
+    inverseApple.y = (rand() % ((WINDOW_HEIGHT - APPLE_SIZE) / APPLE_SIZE)) * APPLE_SIZE;
+    return inverseApple;
+}
+
 
 // Vérifie si la tête du serpent touche n'importe quelle autre partie de son corps
 bool checkCollision(SnakeSegment* head, int x, int y) {
@@ -155,12 +167,13 @@ bool checkCollision(SnakeSegment* head, int x, int y) {
 }
 
 // Redistribue  toutes les pommes
-void redistributeApples(Apple* apple, BlackApple* blackApple, BlueApple* blueApple, OrangeApple* orangeApple, PinkLady* pinkLady) {
+void redistributeApples(Apple* apple, BlackApple* blackApple, BlueApple* blueApple, OrangeApple* orangeApple, PinkLady* pinkLady, InverseApple* inverseApple) {
     *apple = generateApple();
     *blackApple = generateBlackApple();
     *blueApple = generateBlueApple();
     *orangeApple = generateOrangeApple();
     *pinkLady = generatePinkLady();
+    *inverseApple = generateInverseApple();
 }
 
 
@@ -203,6 +216,7 @@ int main(int argc, char* argv[]) {
     BlackApple blackApple = generateBlackApple();
     OrangeApple orangeApple = generateOrangeApple();
     PinkLady pinkLady = generatePinkLady();
+    InverseApple inverseApple = generateInverseApple();
 
 
     int running = 1;
@@ -215,22 +229,40 @@ int main(int argc, char* argv[]) {
                 running = 0;
             }
             if (event.type == SDL_KEYDOWN) {
-                switch (event.key.keysym.sym) {
-                    case SDLK_z: // ou W en QWERTY
-                        direction = UP;
-                        break;
-                    case SDLK_q: // ou A en QWERTY
-                        direction = LEFT;
-                        break;
-                    case SDLK_s:
-                        direction = DOWN;
-                        break;
-                    case SDLK_d:
-                        direction = RIGHT;
-                        break;
+                if (!isInverse) {
+                    switch (event.key.keysym.sym) {
+                        case SDLK_z: // ou W en QWERTY
+                            direction = UP;
+                            break;
+                        case SDLK_q: // ou A en QWERTY
+                            direction = LEFT;
+                            break;
+                        case SDLK_s:
+                            direction = DOWN;
+                            break;
+                        case SDLK_d:
+                            direction = RIGHT;
+                            break;
+                    }
+                } else {
+                    switch (event.key.keysym.sym) {
+                        case SDLK_z: // ou W en QWERTY
+                            direction = DOWN;
+                            break;
+                        case SDLK_q: // ou A en QWERTY
+                            direction = RIGHT;
+                            break;
+                        case SDLK_s:
+                            direction = UP;
+                            break;
+                        case SDLK_d:
+                            direction = LEFT;
+                            break;
+                    }
                 }
             }
         }
+
 
 
         // Met à jour les coordonnées du serpent en fonction de la direction
@@ -323,7 +355,7 @@ int main(int argc, char* argv[]) {
 
 
         // Dessine la pomme noire
-        SDL_SetRenderDrawColor(renderer, 92, 63, 108, 255); // Couleur tkt
+        SDL_SetRenderDrawColor(renderer, 92, 63, 108, 255); // euh tkt
         SDL_Rect blackAppleRect = { blackApple.x, blackApple.y, APPLE_SIZE, APPLE_SIZE };
         SDL_RenderFillRect(renderer, &blackAppleRect);
 
@@ -337,6 +369,11 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 240, 140, 207, 255); // Rose
         SDL_Rect pinkLadyRect = { pinkLady.x, pinkLady.y, APPLE_SIZE, APPLE_SIZE };
         SDL_RenderFillRect(renderer, &pinkLadyRect);
+
+        // Dessine la pomme inversée
+        SDL_SetRenderDrawColor(renderer, 134, 218, 68, 255); // Vert
+        SDL_Rect inverseAppleRect = { inverseApple.x, inverseApple.y, APPLE_SIZE, APPLE_SIZE };
+        SDL_RenderFillRect(renderer, &inverseAppleRect);
 
 
         // Affiche le serpent
@@ -429,7 +466,7 @@ int main(int argc, char* argv[]) {
             (snakeX + SEGMENT_SIZE > orangeApple.x && snakeX + SEGMENT_SIZE <= orangeApple.x + APPLE_SIZE &&
              snakeY + SEGMENT_SIZE > orangeApple.y && snakeY + SEGMENT_SIZE <= orangeApple.y + APPLE_SIZE)) {
 
-            redistributeApples(&apple, &blackApple, &blueApple, &orangeApple, &pinkLady);
+            redistributeApples(&apple, &blackApple, &blueApple, &orangeApple, &pinkLady, &inverseApple);
         }
 
         // Vérifie si le serpent mange une pomme rose
@@ -445,8 +482,22 @@ int main(int argc, char* argv[]) {
             pinkLady = generatePinkLady();
             snakeColor = (SDL_Color){rand() % 256, rand() % 256, rand() % 256, 255}; // Randomise la couleur du serpent
 
-
         }
+
+        // Vérifie si le serpent mange une pomme inversée
+        if ((snakeX >= inverseApple.x && snakeX < inverseApple.x + APPLE_SIZE &&
+             snakeY >= inverseApple.y && snakeY < inverseApple.y + APPLE_SIZE) ||
+            (snakeX + SEGMENT_SIZE > inverseApple.x && snakeX + SEGMENT_SIZE <= inverseApple.x + APPLE_SIZE &&
+             snakeY >= inverseApple.y && snakeY < inverseApple.y + APPLE_SIZE) ||
+            (snakeX >= inverseApple.x && snakeX < inverseApple.x + APPLE_SIZE &&
+             snakeY + SEGMENT_SIZE > inverseApple.y && snakeY + SEGMENT_SIZE <= inverseApple.y + APPLE_SIZE) ||
+            (snakeX + SEGMENT_SIZE > inverseApple.x && snakeX + SEGMENT_SIZE <= inverseApple.x + APPLE_SIZE &&
+             snakeY + SEGMENT_SIZE > inverseApple.y && snakeY + SEGMENT_SIZE <= inverseApple.y + APPLE_SIZE)) {
+
+            inverseApple = generateInverseApple();
+            isInverse = !isInverse; // Inverse la valeur de isInverse
+        }
+
 
         // Affiche l'écran
         SDL_RenderPresent(renderer);
@@ -468,4 +519,3 @@ int main(int argc, char* argv[]) {
     SDL_Quit();
     return 0;
 }
-
