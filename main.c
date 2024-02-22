@@ -11,9 +11,12 @@
 #define WINDOW_HEIGHT 600
 
 
-// Coordonnées initiales
+// Coordonnées initiales du serpent
 int snakeX = -50;
 int snakeY = -50;
+
+// Couleur initiale du serpent
+SDL_Color snakeColor = {56, 159, 109, 255};
 
 int framesPerMove = 5; // Le serpent bouge toutes les 5 frames
 int frameCount = 0; // Compteur de frames
@@ -51,6 +54,9 @@ typedef struct OrangeApple {
     int x, y;
 } OrangeApple;
 
+typedef struct PinkLady {
+    int x, y;
+} PinkLady;
 
 // Initialisation du serpent
 SnakeSegment* initSnake(int x, int y) {
@@ -72,7 +78,7 @@ void addSegment(SnakeSegment* head, int x, int y) {
 
 // Affichage du serpent
 void drawSnake(SDL_Renderer* renderer, SnakeSegment* head) {
-    SDL_SetRenderDrawColor(renderer, 56, 159, 109 , 255);
+    SDL_SetRenderDrawColor(renderer, snakeColor.r, snakeColor.g, snakeColor.b, 255);
     SnakeSegment* current = head;
     while (current) {
         SDL_Rect rect = { current->x, current->y, SEGMENT_SIZE, SEGMENT_SIZE };
@@ -127,6 +133,14 @@ OrangeApple generateOrangeApple() {
     return orangeApple;
 }
 
+// Pink Lady
+PinkLady generatePinkLady() {
+    PinkLady pinkLady;
+    pinkLady.x = (rand() % ((WINDOW_WIDTH - APPLE_SIZE) / APPLE_SIZE)) * APPLE_SIZE;
+    pinkLady.y = (rand() % ((WINDOW_HEIGHT - APPLE_SIZE) / APPLE_SIZE)) * APPLE_SIZE;
+    return pinkLady;
+}
+
 
 // Vérifie si la tête du serpent touche n'importe quelle autre partie de son corps
 bool checkCollision(SnakeSegment* head, int x, int y) {
@@ -141,11 +155,12 @@ bool checkCollision(SnakeSegment* head, int x, int y) {
 }
 
 // Redistribue  toutes les pommes
-void redistributeApples(Apple* apple, BlackApple* blackApple, BlueApple* blueApple, OrangeApple* orangeApple) {
+void redistributeApples(Apple* apple, BlackApple* blackApple, BlueApple* blueApple, OrangeApple* orangeApple, PinkLady* pinkLady) {
     *apple = generateApple();
     *blackApple = generateBlackApple();
     *blueApple = generateBlueApple();
     *orangeApple = generateOrangeApple();
+    *pinkLady = generatePinkLady();
 }
 
 
@@ -187,6 +202,7 @@ int main(int argc, char* argv[]) {
     BlueApple blueApple = generateBlueApple();
     BlackApple blackApple = generateBlackApple();
     OrangeApple orangeApple = generateOrangeApple();
+    PinkLady pinkLady = generatePinkLady();
 
 
     int running = 1;
@@ -317,6 +333,10 @@ int main(int argc, char* argv[]) {
         SDL_Rect orangeAppleRect = { orangeApple.x, orangeApple.y, APPLE_SIZE, APPLE_SIZE };
         SDL_RenderFillRect(renderer, &orangeAppleRect);
 
+        // Dessine la lady
+        SDL_SetRenderDrawColor(renderer, 240, 140, 207, 255); // Rose
+        SDL_Rect pinkLadyRect = { pinkLady.x, pinkLady.y, APPLE_SIZE, APPLE_SIZE };
+        SDL_RenderFillRect(renderer, &pinkLadyRect);
 
 
         // Affiche le serpent
@@ -333,15 +353,13 @@ int main(int argc, char* argv[]) {
             (snakeX + SEGMENT_SIZE > apple.x && snakeX + SEGMENT_SIZE <= apple.x + APPLE_SIZE &&
              snakeY + SEGMENT_SIZE > apple.y && snakeY + SEGMENT_SIZE <= apple.y + APPLE_SIZE)) {
 
-            // Nouvelle pomme
-            apple = generateApple();
 
-            // Ajoute deux nouveaux segments au serpent
+            apple = generateApple();
             addSegment(snake, snakeX, snakeY);
             addSegment(snake, snakeX, snakeY);
+
         } else {
 
-            // Supprime le dernier segment du serpent
             removeLastSegment(snake);
         }
 
@@ -356,10 +374,7 @@ int main(int argc, char* argv[]) {
             (snakeX + SEGMENT_SIZE > blueApple.x && snakeX + SEGMENT_SIZE <= blueApple.x + APPLE_SIZE &&
              snakeY + SEGMENT_SIZE > blueApple.y && snakeY + SEGMENT_SIZE <= blueApple.y + APPLE_SIZE)) {
 
-            // Génére une nouvelle pomme bleue
             blueApple = generateBlueApple();
-
-            // Réduit la taille du serpent d'un segment
             removeLastSegment(snake);
         }
 
@@ -414,7 +429,23 @@ int main(int argc, char* argv[]) {
             (snakeX + SEGMENT_SIZE > orangeApple.x && snakeX + SEGMENT_SIZE <= orangeApple.x + APPLE_SIZE &&
              snakeY + SEGMENT_SIZE > orangeApple.y && snakeY + SEGMENT_SIZE <= orangeApple.y + APPLE_SIZE)) {
 
-            redistributeApples(&apple, &blackApple, &blueApple, &orangeApple);
+            redistributeApples(&apple, &blackApple, &blueApple, &orangeApple, &pinkLady);
+        }
+
+        // Vérifie si le serpent mange une pomme rose
+        if ((snakeX >= pinkLady.x && snakeX < pinkLady.x + APPLE_SIZE &&
+             snakeY >= pinkLady.y && snakeY < pinkLady.y + APPLE_SIZE) ||
+            (snakeX + SEGMENT_SIZE > pinkLady.x && snakeX + SEGMENT_SIZE <= pinkLady.x + APPLE_SIZE &&
+             snakeY >= pinkLady.y && snakeY < pinkLady.y + APPLE_SIZE) ||
+            (snakeX >= pinkLady.x && snakeX < pinkLady.x + APPLE_SIZE &&
+             snakeY + SEGMENT_SIZE > pinkLady.y && snakeY + SEGMENT_SIZE <= pinkLady.y + APPLE_SIZE) ||
+            (snakeX + SEGMENT_SIZE > pinkLady.x && snakeX + SEGMENT_SIZE <= pinkLady.x + APPLE_SIZE &&
+             snakeY + SEGMENT_SIZE > pinkLady.y && snakeY + SEGMENT_SIZE <= pinkLady.y + APPLE_SIZE)) {
+
+            pinkLady = generatePinkLady();
+            snakeColor = (SDL_Color){rand() % 256, rand() % 256, rand() % 256, 255}; // Randomise la couleur du serpent
+
+
         }
 
         // Affiche l'écran
