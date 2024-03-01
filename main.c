@@ -15,6 +15,10 @@
 int snakeX = -50;
 int snakeY = -50;
 
+//Longueur initiale du serpent
+int snakeLength = 0;
+
+
 // Couleur initiale du serpent
 SDL_Color snakeColor = {56, 159, 109, 255};
 
@@ -78,7 +82,9 @@ void addSegment(SnakeSegment* head, int x, int y) {
     newSegment->y = y;
     newSegment->next = head->next;
     head->next = newSegment;
+    snakeLength++;
 }
+
 
 // Affichage du serpent
 void drawSnake(SDL_Renderer* renderer, SnakeSegment* head) {
@@ -102,6 +108,7 @@ void removeLastSegment(SnakeSegment* head) {
         }
         free(current->next);
         current->next = NULL;
+        snakeLength--;
     }
 }
 
@@ -176,6 +183,24 @@ void redistributeApples(Apple* apple, BlackApple* blackApple, BlueApple* blueApp
     *inverseApple = generateInverseApple();
 }
 
+// Affiche la longueur du serpent
+void drawLength(SDL_Renderer* renderer, TTF_Font* smallFont) {
+    SDL_Color textColor = {92, 63, 108, 255};
+    char lengthText[50];
+    sprintf(lengthText, "Length : %d", snakeLength);
+    SDL_Surface* textSurface = TTF_RenderText_Blended(smallFont, lengthText, textColor);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_Rect textRect = {
+            20,
+            WINDOW_HEIGHT - 50,
+            textSurface->w,
+            textSurface->h
+    };
+    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+    SDL_FreeSurface(textSurface);
+    SDL_DestroyTexture(textTexture);
+}
+
 
 int main(int argc, char* argv[]) {
 
@@ -194,6 +219,7 @@ int main(int argc, char* argv[]) {
     }
 
     TTF_Font* font = TTF_OpenFont("C:\\Users\\agath\\Documents\\SDL\\Baloo-Regular.ttf", 35);
+    TTF_Font* smallFont = TTF_OpenFont("C:\\Users\\agath\\Documents\\SDL\\Baloo-Regular.ttf", 25);
     if (!font) {
         printf("Error loading font: %s\n", TTF_GetError());
         TTF_Quit();
@@ -218,7 +244,7 @@ int main(int argc, char* argv[]) {
     PinkLady pinkLady = generatePinkLady();
     InverseApple inverseApple = generateInverseApple();
 
-
+    bool isGameOver = false;
     int running = 1;
 
 
@@ -281,9 +307,10 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
-
         // Collision du serpent avec lui-même
         if (checkCollision(snake, snakeX, snakeY)) {
+            isGameOver = true;
+
 
             // Affiche "Game Over"
             SDL_Color textColor = {92, 63, 108, 255};
@@ -293,6 +320,7 @@ int main(int argc, char* argv[]) {
             // Calcule la position du texte pour le centrer
             int textWidth, textHeight;
             TTF_SizeText(font, "Game Over", &textWidth, &textHeight);
+            int textHeightGameOver = textHeight;
             SDL_Rect textRectGameOver = {
                     (WINDOW_WIDTH - textWidth) / 2,  // Position x
                     (WINDOW_HEIGHT - textHeight) / 2, // Position y
@@ -302,6 +330,27 @@ int main(int argc, char* argv[]) {
 
             SDL_RenderCopy(renderer, textTextureGameOver, NULL, &textRectGameOver);
             SDL_RenderPresent(renderer);
+
+
+            // Afficher la longueur finale en dessous du game over
+            char lengthText[50];
+            sprintf(lengthText, "Final length : %d", snakeLength);
+            SDL_Surface* textSurfaceLength = TTF_RenderText_Blended(font, lengthText, textColor);
+            SDL_Texture* textTextureLength = SDL_CreateTextureFromSurface(renderer, textSurfaceLength);
+
+
+            int textWidthLength, textHeightLength;
+            TTF_SizeText(font, lengthText, &textWidthLength, &textHeightLength);
+            SDL_Rect textRectLength = {
+                    (WINDOW_WIDTH - textWidthLength) / 2,
+                    (WINDOW_HEIGHT - textHeightGameOver) / 2 + textHeightGameOver + 10,
+                    textWidthLength,
+                    textHeightLength
+            };
+
+            SDL_RenderCopy(renderer, textTextureLength, NULL, &textRectLength);
+            SDL_RenderPresent(renderer);
+
 
             // Attendre 5s puis quitter
             Uint32 start_ticks = SDL_GetTicks();
@@ -314,7 +363,6 @@ int main(int argc, char* argv[]) {
             }
             running = 0;
         }
-
 
         // Affiche l'écran
         if (running) {
@@ -393,7 +441,6 @@ int main(int argc, char* argv[]) {
 
             apple = generateApple();
             addSegment(snake, snakeX, snakeY);
-            addSegment(snake, snakeX, snakeY);
 
         } else {
 
@@ -426,6 +473,8 @@ int main(int argc, char* argv[]) {
             (snakeX + SEGMENT_SIZE > blackApple.x && snakeX + SEGMENT_SIZE <= blackApple.x + APPLE_SIZE &&
              snakeY + SEGMENT_SIZE > blackApple.y && snakeY + SEGMENT_SIZE <= blackApple.y + APPLE_SIZE)) {
 
+            isGameOver = true;
+
             // Affiche "Game Over"
             SDL_Color textColor = {92, 63, 108, 255};
             SDL_Surface* textSurfaceGameOver = TTF_RenderText_Blended(font, "Game Over", textColor);
@@ -434,6 +483,7 @@ int main(int argc, char* argv[]) {
             // Calcule la position du texte pour le centrer
             int textWidth, textHeight;
             TTF_SizeText(font, "Game Over", &textWidth, &textHeight);
+            int textHeightGameOver = textHeight;
             SDL_Rect textRectGameOver = {
                     (WINDOW_WIDTH - textWidth) / 2,  // Position x
                     (WINDOW_HEIGHT - textHeight) / 2, // Position y
@@ -443,6 +493,27 @@ int main(int argc, char* argv[]) {
 
             SDL_RenderCopy(renderer, textTextureGameOver, NULL, &textRectGameOver);
             SDL_RenderPresent(renderer);
+
+
+            // Afficher la longueur finale en dessous du game over
+            char lengthText[50];
+            sprintf(lengthText, "Final length : %d", snakeLength);
+            SDL_Surface* textSurfaceLength = TTF_RenderText_Blended(font, lengthText, textColor);
+            SDL_Texture* textTextureLength = SDL_CreateTextureFromSurface(renderer, textSurfaceLength);
+
+
+            int textWidthLength, textHeightLength;
+            TTF_SizeText(font, lengthText, &textWidthLength, &textHeightLength);
+            SDL_Rect textRectLength = {
+                    (WINDOW_WIDTH - textWidthLength) / 2,
+                    (WINDOW_HEIGHT - textHeightGameOver) / 2 + textHeightGameOver + 10,
+                    textWidthLength,
+                    textHeightLength
+            };
+
+            SDL_RenderCopy(renderer, textTextureLength, NULL, &textRectLength);
+            SDL_RenderPresent(renderer);
+
 
             // Attendre 5 secondes puis quitter
             Uint32 start_ticks = SDL_GetTicks();
@@ -498,6 +569,10 @@ int main(int argc, char* argv[]) {
             isInverse = !isInverse; // Inverse la valeur de isInverse
         }
 
+        // Affiche la longueur du serpent
+        if (!isGameOver) {
+            drawLength(renderer, smallFont);
+        }
 
         // Affiche l'écran
         SDL_RenderPresent(renderer);
@@ -519,3 +594,4 @@ int main(int argc, char* argv[]) {
     SDL_Quit();
     return 0;
 }
+
