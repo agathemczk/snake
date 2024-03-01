@@ -184,8 +184,13 @@ void redistributeApples(Apple* apple, BlackApple* blackApple, BlueApple* blueApp
 }
 
 // Affiche la longueur du serpent
-void drawLength(SDL_Renderer* renderer, TTF_Font* smallFont) {
-    SDL_Color textColor = {92, 63, 108, 255};
+void drawLength(SDL_Renderer* renderer, TTF_Font* smallFont, int snakeX, int snakeY, int lengthTextX, int lengthTextWidth, int lengthTextY, int lengthTextHeight) {
+    SDL_Color textColor;
+    if (snakeX >= lengthTextX && snakeX <= lengthTextX + lengthTextWidth && snakeY >= lengthTextY && snakeY <= lengthTextY + lengthTextHeight) {
+        textColor = (SDL_Color){rand() % 256, rand() % 256, rand() % 256, 255};
+    } else {
+        textColor = (SDL_Color){92, 63, 108, 255};
+    }
     char lengthText[50];
     sprintf(lengthText, "Length : %d", snakeLength);
     SDL_Surface* textSurface = TTF_RenderText_Blended(smallFont, lengthText, textColor);
@@ -200,6 +205,8 @@ void drawLength(SDL_Renderer* renderer, TTF_Font* smallFont) {
     SDL_FreeSurface(textSurface);
     SDL_DestroyTexture(textTexture);
 }
+
+
 
 
 int main(int argc, char* argv[]) {
@@ -246,6 +253,11 @@ int main(int argc, char* argv[]) {
 
     bool isGameOver = false;
     int running = 1;
+
+    int lengthTextX = 20;
+    int lengthTextY = WINDOW_HEIGHT - 50;
+    int lengthTextWidth = 100; // A ajuster
+    int lengthTextHeight = 25; //A ajuster
 
 
     while (running) {
@@ -569,9 +581,10 @@ int main(int argc, char* argv[]) {
             isInverse = !isInverse; // Inverse la valeur de isInverse
         }
 
+
         // Affiche la longueur du serpent
         if (!isGameOver) {
-            drawLength(renderer, smallFont);
+            drawLength(renderer, smallFont, snakeX, snakeY, lengthTextX, lengthTextWidth, lengthTextY, lengthTextHeight);
         }
 
         // Affiche l'écran
