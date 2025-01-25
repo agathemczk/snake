@@ -11,18 +11,13 @@
 #define WINDOW_HEIGHT 600
 
 
-// Coordonnées initiales du serpent
 int snakeX = -50;
 int snakeY = -50;
 
-//Longueur initiale du serpent
 int snakeLength = 0;
 
-
-// Couleur initiale du serpent
 SDL_Color snakeColor = {56, 159, 109, 255};
 
-// Pour la pomme inversée
 bool isInverse = false;
 
 typedef enum Direction {
@@ -32,7 +27,6 @@ typedef enum Direction {
     RIGHT
 } Direction;
 
-// Variable pour stocker la direction actuelle
 Direction direction;
 
 
@@ -66,7 +60,6 @@ typedef struct InverseApple {
     int x, y;
 } InverseApple;
 
-// Initialisation du serpent
 SnakeSegment* initSnake(int x, int y) {
     SnakeSegment* head = (SnakeSegment*)malloc(sizeof(SnakeSegment));
     head->x = x;
@@ -75,7 +68,6 @@ SnakeSegment* initSnake(int x, int y) {
     return head;
 }
 
-// Ajout d'un segment au serpent
 void addSegment(SnakeSegment* head, int x, int y) {
     SnakeSegment* newSegment = (SnakeSegment*)malloc(sizeof(SnakeSegment));
     newSegment->x = x;
@@ -85,8 +77,6 @@ void addSegment(SnakeSegment* head, int x, int y) {
     snakeLength++;
 }
 
-
-// Affichage du serpent
 void drawSnake(SDL_Renderer* renderer, SnakeSegment* head) {
     SDL_SetRenderDrawColor(renderer, snakeColor.r, snakeColor.g, snakeColor.b, 255);
     SnakeSegment* current = head;
@@ -97,10 +87,9 @@ void drawSnake(SDL_Renderer* renderer, SnakeSegment* head) {
     }
 }
 
-// Suppression du dernier segment du serpent
 void removeLastSegment(SnakeSegment* head) {
     if (head->next == NULL) {
-        return; // Ne rien faire si le serpent n'a qu'un seul segment
+        return; 
     } else {
         SnakeSegment* current = head;
         while (current->next->next != NULL) {
@@ -112,7 +101,6 @@ void removeLastSegment(SnakeSegment* head) {
     }
 }
 
-// Génération d'une pomme à une position aléatoire
 Apple generateApple() {
     Apple apple;
     apple.x = (rand() % ((WINDOW_WIDTH - APPLE_SIZE) / APPLE_SIZE)) * APPLE_SIZE;
@@ -120,7 +108,6 @@ Apple generateApple() {
     return apple;
 }
 
-// Génération d'une pomme noire à une position aléatoire
 BlackApple generateBlackApple() {
     BlackApple blackApple;
     blackApple.x = (rand() % ((WINDOW_WIDTH - APPLE_SIZE) / APPLE_SIZE)) * APPLE_SIZE;
@@ -128,7 +115,6 @@ BlackApple generateBlackApple() {
     return blackApple;
 }
 
-// TOUJOURS PLUS DE POMMEESS !
 BlueApple generateBlueApple() {
     BlueApple blueApple;
     blueApple.x = (rand() % ((WINDOW_WIDTH - APPLE_SIZE) / APPLE_SIZE)) * APPLE_SIZE;
@@ -136,7 +122,6 @@ BlueApple generateBlueApple() {
     return blueApple;
 }
 
-// Pomme ou orange ?!
 OrangeApple generateOrangeApple() {
     OrangeApple orangeApple;
     orangeApple.x = (rand() % ((WINDOW_WIDTH - APPLE_SIZE) / APPLE_SIZE)) * APPLE_SIZE;
@@ -144,7 +129,6 @@ OrangeApple generateOrangeApple() {
     return orangeApple;
 }
 
-// Pink Lady
 PinkLady generatePinkLady() {
     PinkLady pinkLady;
     pinkLady.x = (rand() % ((WINDOW_WIDTH - APPLE_SIZE) / APPLE_SIZE)) * APPLE_SIZE;
@@ -152,7 +136,6 @@ PinkLady generatePinkLady() {
     return pinkLady;
 }
 
-// C'est le monde à l'envers
 InverseApple generateInverseApple() {
     InverseApple inverseApple;
     inverseApple.x = (rand() % ((WINDOW_WIDTH - APPLE_SIZE) / APPLE_SIZE)) * APPLE_SIZE;
@@ -160,8 +143,6 @@ InverseApple generateInverseApple() {
     return inverseApple;
 }
 
-
-// Vérifie si la tête du serpent touche n'importe quelle autre partie de son corps
 bool checkCollision(SnakeSegment* head, int x, int y) {
     SnakeSegment* current = head;
     while (current) {
@@ -173,7 +154,6 @@ bool checkCollision(SnakeSegment* head, int x, int y) {
     return false;
 }
 
-// Redistribue  toutes les pommes
 void redistributeApples(Apple* apple, BlackApple* blackApple, BlueApple* blueApple, OrangeApple* orangeApple, PinkLady* pinkLady, InverseApple* inverseApple) {
     *apple = generateApple();
     *blackApple = generateBlackApple();
@@ -183,7 +163,6 @@ void redistributeApples(Apple* apple, BlackApple* blackApple, BlueApple* blueApp
     *inverseApple = generateInverseApple();
 }
 
-// Affiche la longueur du serpent
 void drawLength(SDL_Renderer* renderer, TTF_Font* smallFont, int snakeX, int snakeY, int lengthTextX, int lengthTextWidth, int lengthTextY, int lengthTextHeight) {
     SDL_Color textColor;
     if (snakeX >= lengthTextX && snakeX <= lengthTextX + lengthTextWidth && snakeY >= lengthTextY && snakeY <= lengthTextY + lengthTextHeight) {
@@ -205,8 +184,6 @@ void drawLength(SDL_Renderer* renderer, TTF_Font* smallFont, int snakeX, int sna
     SDL_FreeSurface(textSurface);
     SDL_DestroyTexture(textTexture);
 }
-
-
 
 
 int main(int argc, char* argv[]) {
@@ -236,10 +213,10 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    // Position initiale du serpent
+
     SnakeSegment* snake = initSnake(snakeX, snakeY);
 
-    // Déplace le serpent une fois avant d'entrer dans la boucle principale (pour éviter le point au centre)
+
     snakeX = WINDOW_WIDTH / 2 - SEGMENT_SIZE / 2 ;
     snakeY = WINDOW_HEIGHT / 2 - SEGMENT_SIZE / 2;
     addSegment(snake, snakeX, snakeY);
@@ -301,9 +278,6 @@ int main(int argc, char* argv[]) {
             }
         }
 
-
-
-        // Met à jour les coordonnées du serpent en fonction de la direction
         switch (direction) {
             case UP:
                 snakeY -= SEGMENT_SIZE;
@@ -319,17 +293,14 @@ int main(int argc, char* argv[]) {
                 break;
         }
 
-        // Collision du serpent avec lui-même
         if (checkCollision(snake, snakeX, snakeY)) {
             isGameOver = true;
 
 
-            // Affiche "Game Over"
             SDL_Color textColor = {92, 63, 108, 255};
             SDL_Surface* textSurfaceGameOver = TTF_RenderText_Blended(font, "Game Over", textColor);
             SDL_Texture* textTextureGameOver = SDL_CreateTextureFromSurface(renderer, textSurfaceGameOver);
 
-            // Calcule la position du texte pour le centrer
             int textWidth, textHeight;
             TTF_SizeText(font, "Game Over", &textWidth, &textHeight);
             int textHeightGameOver = textHeight;
@@ -344,7 +315,6 @@ int main(int argc, char* argv[]) {
             SDL_RenderPresent(renderer);
 
 
-            // Afficher la longueur finale en dessous du game over
             char lengthText[50];
             sprintf(lengthText, "Final length : %d", snakeLength);
             SDL_Surface* textSurfaceLength = TTF_RenderText_Blended(font, lengthText, textColor);
@@ -364,7 +334,6 @@ int main(int argc, char* argv[]) {
             SDL_RenderPresent(renderer);
 
 
-            // Attendre 5s puis quitter
             Uint32 start_ticks = SDL_GetTicks();
             while (SDL_GetTicks() - start_ticks < 5000) {
                 SDL_PollEvent(&event);
@@ -376,7 +345,6 @@ int main(int argc, char* argv[]) {
             running = 0;
         }
 
-        // Affiche l'écran
         if (running) {
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // blanc
             SDL_RenderClear(renderer);
@@ -385,7 +353,6 @@ int main(int argc, char* argv[]) {
 
         addSegment(snake, snakeX, snakeY);
 
-        // Collisions avec les bordes de la fenêtre
         if (snakeX < 0) {
             snakeX = WINDOW_WIDTH ;
         }
@@ -402,45 +369,37 @@ int main(int argc, char* argv[]) {
             snakeY = 0  - SEGMENT_SIZE;
         }
 
-
-        // Dessine la pomme rouge
-        SDL_SetRenderDrawColor(renderer, 187, 51, 51 , 255 ); // Couleur rouge
+        SDL_SetRenderDrawColor(renderer, 187, 51, 51 , 255 ); 
         SDL_Rect appleRect = { apple.x, apple.y, APPLE_SIZE, APPLE_SIZE };
         SDL_RenderFillRect(renderer, &appleRect);
 
-        // Dessine la pomme bleue
-        SDL_SetRenderDrawColor(renderer, 121, 202, 211, 255); // Couleur bleue
+        SDL_SetRenderDrawColor(renderer, 121, 202, 211, 255); 
         SDL_Rect blueAppleRect = { blueApple.x, blueApple.y, APPLE_SIZE, APPLE_SIZE };
         SDL_RenderFillRect(renderer, &blueAppleRect);
 
 
-        // Dessine la pomme noire
-        SDL_SetRenderDrawColor(renderer, 92, 63, 108, 255); // euh tkt
+        SDL_SetRenderDrawColor(renderer, 92, 63, 108, 255); 
         SDL_Rect blackAppleRect = { blackApple.x, blackApple.y, APPLE_SIZE, APPLE_SIZE };
         SDL_RenderFillRect(renderer, &blackAppleRect);
 
 
-        // Dessine l'orange pomme
-        SDL_SetRenderDrawColor(renderer, 250, 162, 35, 255); // Couleur pomme
+        SDL_SetRenderDrawColor(renderer, 250, 162, 35, 255); 
         SDL_Rect orangeAppleRect = { orangeApple.x, orangeApple.y, APPLE_SIZE, APPLE_SIZE };
         SDL_RenderFillRect(renderer, &orangeAppleRect);
 
-        // Dessine la lady
-        SDL_SetRenderDrawColor(renderer, 240, 140, 207, 255); // Rose
+        SDL_SetRenderDrawColor(renderer, 240, 140, 207, 255);
         SDL_Rect pinkLadyRect = { pinkLady.x, pinkLady.y, APPLE_SIZE, APPLE_SIZE };
         SDL_RenderFillRect(renderer, &pinkLadyRect);
 
-        // Dessine la pomme inversée
-        SDL_SetRenderDrawColor(renderer, 134, 218, 68, 255); // Vert
+      
+        SDL_SetRenderDrawColor(renderer, 134, 218, 68, 255); 
         SDL_Rect inverseAppleRect = { inverseApple.x, inverseApple.y, APPLE_SIZE, APPLE_SIZE };
         SDL_RenderFillRect(renderer, &inverseAppleRect);
 
 
-        // Affiche le serpent
         drawSnake(renderer, snake);
 
 
-        // Vérifie si le serpent a mangé une pomme rouge
         if ((snakeX >= apple.x && snakeX < apple.x + APPLE_SIZE &&
              snakeY >= apple.y && snakeY < apple.y + APPLE_SIZE) ||
             (snakeX + SEGMENT_SIZE > apple.x && snakeX + SEGMENT_SIZE <= apple.x + APPLE_SIZE &&
@@ -460,7 +419,6 @@ int main(int argc, char* argv[]) {
         }
 
 
-        // Vérifie si le serpent a mangé une pomme bleue
         if ((snakeX >= blueApple.x && snakeX < blueApple.x + APPLE_SIZE &&
              snakeY >= blueApple.y && snakeY < blueApple.y + APPLE_SIZE) ||
             (snakeX + SEGMENT_SIZE > blueApple.x && snakeX + SEGMENT_SIZE <= blueApple.x + APPLE_SIZE &&
@@ -474,8 +432,6 @@ int main(int argc, char* argv[]) {
             removeLastSegment(snake);
         }
 
-
-        // Vérifie si le serpent a mangé une pomme noire
         if ((snakeX >= blackApple.x && snakeX < blackApple.x + APPLE_SIZE &&
              snakeY >= blackApple.y && snakeY < blackApple.y + APPLE_SIZE) ||
             (snakeX + SEGMENT_SIZE > blackApple.x && snakeX + SEGMENT_SIZE <= blackApple.x + APPLE_SIZE &&
@@ -487,12 +443,11 @@ int main(int argc, char* argv[]) {
 
             isGameOver = true;
 
-            // Affiche "Game Over"
             SDL_Color textColor = {92, 63, 108, 255};
             SDL_Surface* textSurfaceGameOver = TTF_RenderText_Blended(font, "Game Over", textColor);
             SDL_Texture* textTextureGameOver = SDL_CreateTextureFromSurface(renderer, textSurfaceGameOver);
 
-            // Calcule la position du texte pour le centrer
+            
             int textWidth, textHeight;
             TTF_SizeText(font, "Game Over", &textWidth, &textHeight);
             int textHeightGameOver = textHeight;
@@ -507,7 +462,7 @@ int main(int argc, char* argv[]) {
             SDL_RenderPresent(renderer);
 
 
-            // Afficher la longueur finale en dessous du game over
+           
             char lengthText[50];
             sprintf(lengthText, "Final length : %d", snakeLength);
             SDL_Surface* textSurfaceLength = TTF_RenderText_Blended(font, lengthText, textColor);
@@ -527,7 +482,7 @@ int main(int argc, char* argv[]) {
             SDL_RenderPresent(renderer);
 
 
-            // Attendre 5 secondes puis quitter
+            
             Uint32 start_ticks = SDL_GetTicks();
             while (SDL_GetTicks() - start_ticks < 5000) {
                 SDL_PollEvent(&event);
@@ -539,7 +494,7 @@ int main(int argc, char* argv[]) {
             running = 0;
         }
 
-        //Vérifie si le serpent a mangé une orange pomme
+       
         if ((snakeX >= orangeApple.x && snakeX < orangeApple.x + APPLE_SIZE &&
              snakeY >= orangeApple.y && snakeY < orangeApple.y + APPLE_SIZE) ||
             (snakeX + SEGMENT_SIZE > orangeApple.x && snakeX + SEGMENT_SIZE <= orangeApple.x + APPLE_SIZE &&
@@ -552,7 +507,7 @@ int main(int argc, char* argv[]) {
             redistributeApples(&apple, &blackApple, &blueApple, &orangeApple, &pinkLady, &inverseApple);
         }
 
-        // Vérifie si le serpent mange une pomme rose
+     
         if ((snakeX >= pinkLady.x && snakeX < pinkLady.x + APPLE_SIZE &&
              snakeY >= pinkLady.y && snakeY < pinkLady.y + APPLE_SIZE) ||
             (snakeX + SEGMENT_SIZE > pinkLady.x && snakeX + SEGMENT_SIZE <= pinkLady.x + APPLE_SIZE &&
@@ -563,11 +518,11 @@ int main(int argc, char* argv[]) {
              snakeY + SEGMENT_SIZE > pinkLady.y && snakeY + SEGMENT_SIZE <= pinkLady.y + APPLE_SIZE)) {
 
             pinkLady = generatePinkLady();
-            snakeColor = (SDL_Color){rand() % 256, rand() % 256, rand() % 256, 255}; // Randomise la couleur du serpent
+            snakeColor = (SDL_Color){rand() % 256, rand() % 256, rand() % 256, 255}; 
 
         }
 
-        // Vérifie si le serpent mange une pomme inversée
+     
         if ((snakeX >= inverseApple.x && snakeX < inverseApple.x + APPLE_SIZE &&
              snakeY >= inverseApple.y && snakeY < inverseApple.y + APPLE_SIZE) ||
             (snakeX + SEGMENT_SIZE > inverseApple.x && snakeX + SEGMENT_SIZE <= inverseApple.x + APPLE_SIZE &&
@@ -578,23 +533,22 @@ int main(int argc, char* argv[]) {
              snakeY + SEGMENT_SIZE > inverseApple.y && snakeY + SEGMENT_SIZE <= inverseApple.y + APPLE_SIZE)) {
 
             inverseApple = generateInverseApple();
-            isInverse = !isInverse; // Inverse la valeur de isInverse
+            isInverse = !isInverse;
         }
 
 
-        // Affiche la longueur du serpent
         if (!isGameOver) {
             drawLength(renderer, smallFont, snakeX, snakeY, lengthTextX, lengthTextWidth, lengthTextY, lengthTextHeight);
         }
 
-        // Affiche l'écran
+    
         SDL_RenderPresent(renderer);
 
-        // Vitesse
+       
         SDL_Delay(1000/FPS);
     }
 
-    // Libére la mémoire
+
     while (snake) {
         SnakeSegment* temp = snake;
         snake = snake->next;
